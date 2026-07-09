@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/Discord-OTP-Forcer" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/FAIR" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/FreeCAD-DFM-Workbench" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/SpiceyPy" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/TileOPs" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/XMRT-Ecosystem" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/cli" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/commander-spellbook-backend" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/draftjs_exporter" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/flow" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/hass-dab-pumps" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/ibet-Network" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/ibet-SmartContract" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/index-digest" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/kernelci-pipeline" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/mesa-llm" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/moldflow-api" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/penny" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/pypto" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/pyticktick" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/simonwillisonblog" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cloned_repos/wicked-garden" vcs="Git" />
+  </component>
+</project>

@@ -1,0 +1,11 @@
+pandas
+numpy
+requests
+python-dotenv
+gitpython
+radon
+scikit-learn
+matplotlib
+pygwalker
+jupyter
+ipykernel

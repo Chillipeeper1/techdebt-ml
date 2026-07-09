@@ -1,0 +1,17 @@
+# secrets
+.env
+
+# generated data and cloned repositories
+*.csv
+cloned_repos/
+data/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
