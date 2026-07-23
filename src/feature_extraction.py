@@ -9,9 +9,9 @@ def featureExtraction():
     repos = Path("../cloned_repos")
     feat_list = {}
     repos.mkdir(exist_ok=True)
-    with open("../data/raw/repos_candidatos.csv", mode="r", encoding="utf-8") as csv_file:
+    with open("../data/raw/candidate_repos.csv", mode="r", encoding="utf-8") as csv_file:
         read_csv = csv.DictReader(csv_file)
-        #Everything starts here, it reads every single repo from the list repos_candidatos
+        #Everything starts here, it reads every single repo from the list candidate_repos
         for row in read_csv:
             repo_url = row["clone_url"]
             repo_name = repo_url.split("/")[-1].replace(".git","")

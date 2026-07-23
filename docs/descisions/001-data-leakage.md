@@ -52,10 +52,10 @@ with real high technical debt marked as 0 can silently cause problems downstream
 was trained with a small dataset, and implementing a robust solution would require a larger dataset. The next steps would 
 be to increase the dataset size and to explore solutions to improve the model in general. 
 
-| Metric           | With leakage | Without leakage |
-|------------------|--------------|-----------------|
-| Score            | 1.00         | 0.88            |
-| Recall (clase 1) | N/A          | 0.79            |
-| Features en X    | 21           | 19              |
+| Metric            | With leakage | Without leakage |
+|-------------------|--------------|-----------------|
+| Score             | 1.00         | 0.88            |
+| Recall (class 1)  | N/A          | 0.79            |
+| Features in X     | 21           | 19              |
 
 

@@ -5,6 +5,7 @@
 *.csv
 cloned_repos/
 data/
+temp_reports/
 
 # Python
 __pycache__/
@@ -15,3 +16,5 @@ venv/
 
 # Jupyter
 .ipynb_checkpoints/
+
+models/*_v1.pkl

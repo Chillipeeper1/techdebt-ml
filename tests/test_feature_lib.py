@@ -3,7 +3,7 @@ import pytest
 from radon.complexity import cc_visit
 from git import Repo, Actor
 
-from src.feature_lib import (
+from feature_lib import (
     features_radon,
     features_ats,
     feature_git_raw,
@@ -11,125 +11,125 @@ from src.feature_lib import (
 )
 
 
-def test_blank_ratio_no_depende_de_tener_comentarios():
-    codigo = "x = 1\n\n\ny = 2\n"  # sin comentarios, con líneas en blanco
+def test_blank_ratio_does_not_depend_on_having_comments():
+    code = "x = 1\n\n\ny = 2\n"  # no comments, with blank lines
 
-    resultado = features_radon(codigo)
+    result = features_radon(code)
 
-    assert resultado["comment_ratio"] == 0  # correcto, no hay comentarios
-    assert resultado["blank_ratio"] > 0     # el bug original daba 0 aquí
-
-
-def test_comment_ratio_cuenta_comentarios_reales():
-    codigo = "# comentario 1\n# comentario 2\nx = 1\ny = 2\n"
-
-    resultado = features_radon(codigo)
-
-    assert resultado["comment_ratio"] > 0
+    assert result["comment_ratio"] == 0  # correct, there are no comments
+    assert result["blank_ratio"] > 0     # the original bug returned 0 here
 
 
-def test_max_complexity_es_el_maximo_no_la_suma():
-    codigo = """
+def test_comment_ratio_counts_real_comments():
+    code = "# comment 1\n# comment 2\nx = 1\ny = 2\n"
+
+    result = features_radon(code)
+
+    assert result["comment_ratio"] > 0
+
+
+def test_max_complexity_is_the_max_not_the_sum():
+    code = """
 def simple():
     return 1
 
-def con_condicionales(x):
+def with_conditionals(x):
     if x > 0:
         if x > 10:
             return 1
     return 0
 
-def otra_simple():
+def another_simple():
     return 2
 """
-    complejidades_reales = [f.complexity for f in cc_visit(codigo)]
-    maximo_real = max(complejidades_reales)
-    suma_total = sum(complejidades_reales)
+    real_complexities = [f.complexity for f in cc_visit(code)]
+    real_max = max(real_complexities)
+    total_sum = sum(real_complexities)
 
-    resultado = features_radon(codigo)
+    result = features_radon(code)
 
-    assert resultado["max_complexity"] == maximo_real
-    assert resultado["max_complexity"] != suma_total or maximo_real == suma_total
-
-
-def test_archivo_vacio_no_truena():
-    codigo = "x = 1\n"
-
-    resultado = features_radon(codigo)
-
-    assert resultado["num_functions"] == 0
-    assert resultado["max_complexity"] == 0
-    assert resultado["avg_function_len"] == 0
+    assert result["max_complexity"] == real_max
+    assert result["max_complexity"] != total_sum or real_max == total_sum
 
 
-def test_dependency_count_cuenta_imports():
-    codigo = "import os\nimport sys\nfrom pathlib import Path\n\nx = 1\n"
+def test_empty_file_does_not_crash():
+    code = "x = 1\n"
 
-    resultado = features_ats(codigo)
+    result = features_radon(code)
 
-    assert resultado["dependency_count"] == 3
+    assert result["num_functions"] == 0
+    assert result["max_complexity"] == 0
+    assert result["avg_function_len"] == 0
 
 
-def test_max_nesting_depth_detecta_anidamiento_real():
-    codigo = """
-def funcion():
+def test_dependency_count_counts_imports():
+    code = "import os\nimport sys\nfrom pathlib import Path\n\nx = 1\n"
+
+    result = features_ats(code)
+
+    assert result["dependency_count"] == 3
+
+
+def test_max_nesting_depth_detects_real_nesting():
+    code = """
+def function():
     if True:
         for i in range(10):
             if i > 5:
                 pass
 """
-    resultado = features_ats(codigo)
+    result = features_ats(code)
 
-    # función(1) -> if(2) -> for(3) -> if(4)
-    assert resultado["max_nesting_depth"] == 4
+    # function(1) -> if(2) -> for(3) -> if(4)
+    assert result["max_nesting_depth"] == 4
 
 
-def test_is_tested_detecta_funciones_de_test():
-    codigo_con_test = "def test_algo():\n    assert True\n"
-    codigo_sin_test = "def funcion_normal():\n    return 1\n"
+def test_is_tested_detects_test_functions():
+    code_with_test = "def test_something():\n    assert True\n"
+    code_without_test = "def normal_function():\n    return 1\n"
 
-    assert features_ats(codigo_con_test)["is_tested"] == 1
-    assert features_ats(codigo_sin_test)["is_tested"] == 0
+    assert features_ats(code_with_test)["is_tested"] == 1
+    assert features_ats(code_without_test)["is_tested"] == 0
 
 
 @pytest.fixture
-def repo_de_prueba(tmp_path):
+def test_repo(tmp_path):
     repo = Repo.init(tmp_path)
 
-    archivo = tmp_path / "ejemplo.py"
-    archivo.write_text("x = 1\n")
-    repo.index.add(["ejemplo.py"])
+    file = tmp_path / "example.py"
+    file.write_text("x = 1\n")
+    repo.index.add(["example.py"])
     repo.index.commit(
-        "primer commit",
-        author=Actor("Autor Uno", "uno@ejemplo.com"),
+        "first commit",
+        author=Actor("Author One", "one@example.com"),
     )
 
-    archivo.write_text("x = 1\ny = 2\n")
-    repo.index.add(["ejemplo.py"])
+    file.write_text("x = 1\ny = 2\n")
+    repo.index.add(["example.py"])
     repo.index.commit(
-        "segundo commit",
-        author=Actor("Autor Dos", "dos@ejemplo.com"),
+        "second commit",
+        author=Actor("Author Two", "two@example.com"),
     )
 
     return repo
 
-def test_feature_git_raw_cuenta_commits_y_autores(repo_de_prueba):
-    resultado = feature_git_raw("ejemplo.py", repo_de_prueba)
+def test_feature_git_raw_counts_commits_and_authors(test_repo):
+    result = feature_git_raw("example.py", test_repo)
 
-    assert resultado["commit_count"] == 2
-    assert resultado["author_count"] == 2
-    assert resultado["churn_rate"] > 0
-    assert resultado["days_since_change"] >= 0
-
-
-def test_feature_git_raw_archivo_nunca_commiteado(repo_de_prueba):
-    resultado = feature_git_raw("no_existe.py", repo_de_prueba)
-
-    assert resultado["commit_count"] == 0
-    assert resultado["days_since_change"] == 0
+    assert result["commit_count"] == 2
+    assert result["author_count"] == 2
+    assert result["churn_rate"] > 0
+    assert result["days_since_change"] >= 0
 
 
-def test_normalizacion_relativa_calcula_ratio_correcto():
+def test_feature_git_raw_never_committed_file(test_repo):
+    result = feature_git_raw("does_not_exist.py", test_repo)
+
+    assert result["commit_count"] == 0
+    assert result["days_since_change"] == 0
+
+
+def test_relative_normalization_computes_correct_ratio():
     df = pd.DataFrame({
         "repo": ["a", "a", "a", "b", "b"],
         "commit_count": [10, 20, 30, 5, 15],
@@ -138,14 +138,14 @@ def test_normalizacion_relativa_calcula_ratio_correcto():
         "days_since_change": [1, 1, 1, 1, 1],
     })
 
-    resultado = normalization_relative_to_repo(df.copy(), repo_col="repo")
+    result = normalization_relative_to_repo(df.copy(), repo_col="repo")
 
-    assert resultado.loc[0, "commit_count"] == pytest.approx(0.5)
-    assert resultado.loc[1, "commit_count"] == pytest.approx(1.0)
-    assert resultado.loc[2, "commit_count"] == pytest.approx(1.5)
+    assert result.loc[0, "commit_count"] == pytest.approx(0.5)
+    assert result.loc[1, "commit_count"] == pytest.approx(1.0)
+    assert result.loc[2, "commit_count"] == pytest.approx(1.5)
 
 
-def test_normalizacion_relativa_no_divide_entre_cero():
+def test_relative_normalization_does_not_divide_by_zero():
     df = pd.DataFrame({
         "repo": ["a", "a"],
         "commit_count": [0, 0],
@@ -154,7 +154,7 @@ def test_normalizacion_relativa_no_divide_entre_cero():
         "days_since_change": [1, 1],
     })
 
-    resultado = normalization_relative_to_repo(df.copy(), repo_col="repo")
+    result = normalization_relative_to_repo(df.copy(), repo_col="repo")
 
-    assert not resultado["commit_count"].isin([float("inf")]).any()
-    assert resultado["commit_count"].notna().all()
+    assert not result["commit_count"].isin([float("inf")]).any()
+    assert result["commit_count"].notna().all()

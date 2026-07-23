@@ -27,7 +27,7 @@ stratified split).
 The full training dataset — features, labels, preprocessing steps, and source repo attribution — is published
 separately on Hugging Face:
 
-**[huggingface.co/datasets/tu-usuario-hf/techdebt-ml-dataset](https://huggingface.co/datasets/tu-usuario-hf/techdebt-ml-dataset)**
+**[huggingface.co/datasets/ChilliPeep/techdebt-ml-dataset](https://huggingface.co/datasets/ChilliPeep/techdebt-ml-dataset)**
 
 Use it if you want to explore the data, retrain the model yourself, or build something else on top of it without
 having to re-scrape and re-analyze 22 repositories from scratch.
@@ -54,18 +54,18 @@ python src/predict.py /path/to/your/repo
 python src/predict.py
 ```
 
-Either way, you'll get a report in your terminal and a timestamped CSV (`reporte_<repo>_<date>.csv`) with every
+Either way, you'll get a report in your terminal and a timestamped CSV (`report_<repo>_<date>.csv`) with every
 analyzed file, sorted from highest to lowest predicted risk.
 
 ## Known limitations
 
-This project documents its own blind spots as it finds them — see [`docs/decisions/`](docs/decisions/) for the full
+This project documents its own blind spots as it finds them — see [`docs/descisions/`](docs/descisions/) for the full
 history. The short version:
 
-- **[001](docs/decisions/001-data-leakage.md):** an early version of the label leaked into the features. Fixed.
-- **[002](docs/decisions/002-limitacion-corte-temporal.md):** features and label are both computed from a file's full
+- **[001](docs/descisions/001-data-leakage.md):** an early version of the label leaked into the features. Fixed.
+- **[002](docs/descisions/002-limitations-temporal-cut.md):** features and label are both computed from a file's full
   git history, without a strict "past predicts future" time split. Known limitation, not yet addressed.
-- **[003](docs/decisions/003-git-activity-bias.md):** the model initially over-relied on raw git activity
+- **[003](docs/descisions/003-model-bias-git-activity.md):** the model initially over-relied on raw git activity
   (commits, authors) rather than actual code complexity, especially on repos more active than the training set.
   Largely mitigated by normalizing activity features relative to each repo, though complex-but-rarely-touched files
   can still score lower than they probably should.
