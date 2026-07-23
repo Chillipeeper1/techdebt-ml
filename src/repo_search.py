@@ -15,6 +15,7 @@ Requisitos:
 import os
 import time
 import csv
+import random
 import requests
 from datetime import datetime
 from dotenv import load_dotenv
@@ -213,6 +214,58 @@ def imprimir_resumen(candidatos):
         print(f"  ... y {len(ordenados) - 15} más en el CSV")
 
     print("="*60)
+
+
+def obtener_repo_aleatorio():
+    """Devuelve un repo de Python al azar que cumple el query base de CONFIG.
+
+    Elige una página aleatoria (la API de búsqueda expone hasta 1000 resultados:
+    10 páginas de 100) y un repo aleatorio de esa página. Devuelve el dict del
+    repo tal cual lo entrega la API de GitHub, o None si no se obtuvo ninguno.
+    No aplica el filtro de bugs cerrados: solo el query base.
+    """
+    per_page = 100
+    max_paginas = 10  # 10 * 100 = 1000, el máximo que expone la API de búsqueda
+
+    query = (
+        f"language:python "
+        f"stars:{CONFIG['min_stars']}..{CONFIG['max_stars']} "
+        f"size:<{CONFIG['max_size_kb']} "
+        f"is:public"
+    )
+
+    def _pedir(pagina):
+        params = {
+            "q": query,
+            "sort": "updated",
+            "per_page": per_page,
+            "page": pagina,
+        }
+        return get("https://api.github.com/search/repositories", params)
+
+    response = _pedir(random.randint(1, max_paginas))
+    if response.status_code != 200:
+        print(f"  Error {response.status_code}: {response.json().get('message')}")
+        return None
+
+    data = response.json()
+    items = data.get("items", [])
+
+    # Si la página quedó fuera del rango real de resultados, reintenta dentro del rango.
+    if not items:
+        total = data.get("total_count", 0)
+        if total == 0:
+            return None
+        paginas_reales = max(1, min(max_paginas, -(-total // per_page)))
+        response = _pedir(random.randint(1, paginas_reales))
+        if response.status_code != 200:
+            return None
+        items = response.json().get("items", [])
+
+    if not items:
+        return None
+
+    return random.choice(items)
 
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
