@@ -5,7 +5,7 @@ You don't know what technical debt is? Do you consider yourself a vibe-coder? If
 TechDebt ML is a machine learning project that aims to detect technical debt in your codebase.
 
 Even so, this project was mainly created to help vibe-coders detect technical debt in their codebase. The truth is that
-nobody can detect it in a 100% accurate way — there are just hundreds of files that would need to be reviewed by a senior
+nobody can detect it in a 100% accurate way; there are just hundreds of files that would need to be reviewed by a senior
 developer to be sure if they have technical debt or not, and even then, the senior developer could be wrong. So this
 project is just a tool to help you detect technical debt in your codebase, but it is not a silver bullet.
 
@@ -14,7 +14,7 @@ project is just a tool to help you detect technical debt in your codebase, but i
 ## How it works
 
 TechDebt ML analyzes your codebase file by file and extracts three families of features: code-quality metrics
-(complexity, maintainability, size — via Radon), structural metrics (imports, nesting depth, tests — via Python's
+(complexity, maintainability, size, via Radon), structural metrics (imports, nesting depth, tests, via Python's
 `ast`), and git activity (commits, authors, code churn, normalized relative to each repo). It then predicts, per
 file, the probability that it carries technical debt. Check the [training notebook](notebooks/techdebt_model.ipynb)
 for the full feature list and training process.
@@ -59,7 +59,7 @@ analyzed file, sorted from highest to lowest predicted risk.
 
 ## Known limitations
 
-This project documents its own blind spots as it finds them — see [`docs/descisions/`](docs/descisions/) for the full
+This project documents its own blind spots as it finds them; see [`docs/descisions/`](docs/descisions/) for the full
 history. The short version:
 
 - **[001](docs/descisions/001-data-leakage.md):** an early version of the label leaked into the features. Fixed.
