@@ -70,11 +70,11 @@ history. The short version:
   Largely mitigated by normalizing activity features relative to each repo, though complex-but-rarely-touched files
   can still score lower than they probably should.
 
-If a file gets a surprisingly low or high score, take it as a prompt to look closer — not as a verdict.
+If a file gets a surprisingly low or high score, take it as a prompt to look closer, not as a verdict.
 
 ## Contributing
 
-This is an early-stage, actively-evolving project. Issues, PRs, and — especially — reports of files where the model
+This is an early-stage, actively-evolving project. Issues, PRs, and, especially, reports of files where the model
 got it wrong are welcome.
 
 ## License
