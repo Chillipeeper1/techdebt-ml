@@ -17,4 +17,7 @@ venv/
 # Jupyter
 .ipynb_checkpoints/
 
+# IDE
+.idea/
+
 models/*_v1.pkl

@@ -178,3 +178,13 @@ def normalization_relative_to_repo(df_features, repo_col="repo"):
         medians = medians.replace(0, 1)
         df_features[col] = df_features[col] / medians
     return df_features
+
+def embedding_extract_functions(code, min_lines=2):
+    functions = cc_visit(code)
+    lines = code.splitlines()
+    texts = []
+    for f in functions:
+        body = "\n".join(lines[f.lineno - 1 : f.endline])
+        if len(body.splitlines()) >= min_lines:
+            texts.append(body)
+    return texts

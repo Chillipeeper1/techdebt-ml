@@ -1,5 +1,8 @@
 """
 predict.py - analyzes a local repo and predicts the technical debt per file
+
+Uses model v3: tabular features (Radon + AST + relative git activity) combined
+with PCA-reduced code embeddings (see docs/decisions/004-embeddings-tradeoff.md).
 """
 
 import argparse
@@ -8,25 +11,37 @@ import os
 import shutil
 import stat
 import tempfile
+import re
 from pathlib import Path
+from datetime import datetime
+
 import joblib
+import numpy as np
+import pandas as pd
 from git import Repo
 from git.exc import InvalidGitRepositoryError, NoSuchPathError
-from datetime import datetime
-import re
-import pandas as pd
-from feature_lib import features_ats, features_radon, feature_git_raw, normalization_relative_to_repo
+from sentence_transformers import SentenceTransformer
+
+from feature_lib import (
+    features_ats,
+    features_radon,
+    feature_git_raw,
+    normalization_relative_to_repo,
+    embedding_extract_functions,
+)
 
 SRC_DIR = Path(__file__).resolve().parent
 MODELS_DIR = SRC_DIR.parent / "models"
 REPORTS_DIR = SRC_DIR.parent / "temp_reports"
 
-# Allows importing repo_search.py (same directory) regardless of the CWD.
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-feat_list = joblib.load(MODELS_DIR / "features_v2.pkl")
-MODEL = joblib.load(MODELS_DIR / "random_forest_v2.pkl")
+# Oficial Artifacts: v3 (embeddings + PCA)
+feat_list = joblib.load(MODELS_DIR / "features_v3.pkl")
+MODEL = joblib.load(MODELS_DIR / "random_forest_v3.pkl")
+PCA_MODEL = joblib.load(MODELS_DIR / "pca_v3.pkl")
+EMBED_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
 
 CONFIG = {
     "skip_dirs": ["test", ".venv"],
@@ -57,11 +72,11 @@ def find_python_files(repo_path: Path) -> list[str]:
 
 
 def print_summary(repo_path: Path, files: list[str]):
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print(f"  FILES FOUND IN {repo_path.name}")
-    print("="*60)
+    print("=" * 60)
     print(f"  Total: {len(files)} .py files")
-    print("="*60)
+    print("=" * 60)
 
     for file in files[:15]:
         print(f"  {file}")
@@ -69,76 +84,90 @@ def print_summary(repo_path: Path, files: list[str]):
     if len(files) > 15:
         print(f"  ... and {len(files) - 15} more")
 
-    print("="*60)
+    print("=" * 60)
+
 
 def feature_extraction(path, files, repo_git, repo_name):
-    results = {}
-    for file in files:
-        author_list = set()
-        churn_rate_total = 0
-        try:
-            with open(path / file, 'r', encoding='utf-8') as f:
+    resultados = {}
+    todas_las_funciones = []
+    indice_por_archivo = []
 
+    for archivo in files:
+        try:
+            with open(path / archivo, "r", encoding="utf-8") as f:
                 feat_file = f.read()
+
                 features = {}
                 features.update(features_radon(feat_file))
                 features.update(features_ats(feat_file))
-                features.update(feature_git_raw(file,repo_git))
+                features.update(feature_git_raw(archivo, repo_git))
                 features["repo"] = repo_name
 
-                # Feat list for csv
-                results[f"{repo_name}/{file}"] = features
+                # Ruta normalizada — evita el desajuste backslash/forward-slash
+                # entre este dict y las claves de embeddings_por_archivo.
+                clave = f"{repo_name}/{archivo}".replace("\\", "/")
+                resultados[clave] = features
+
+                funciones_archivo = embedding_extract_functions(feat_file)
+                indice_por_archivo.append((clave, len(funciones_archivo)))
+                todas_las_funciones.extend(funciones_archivo)
+
         except Exception as e:
-            print(f"corrupted file: {file} , {e}")
+            print(f"corrupted file: {archivo} , {e}")
             continue
 
-    return results
+    return resultados, todas_las_funciones, indice_por_archivo
 
 
-def prediction(results:dict) -> pd.DataFrame:
-    rows = []
-    for file, features in results.items():
-        X = pd.DataFrame([features])[feat_list]
-        prob = MODEL.predict_proba(X)[:, 1][0]
+def generar_embeddings_reducidos(todas_las_funciones, indice_por_archivo):
+    """Genera embeddings por función (batched), hace mean pooling por archivo.
+    NO aplica PCA aquí — eso ocurre en full_report, sobre la matriz completa."""
+    if todas_las_funciones:
+        embeddings_funciones = EMBED_MODEL.encode(todas_las_funciones, batch_size=64)
+    else:
+        embeddings_funciones = np.empty((0, 384))
 
-        rows.append({
-            "files" : file,
-            "danger":round(prob,3)
-        })
-    return pd.DataFrame(rows).sort_values("danger",ascending=False)
+    embeddings_por_archivo = {}
+    cursor = 0
+    for clave, cantidad in indice_por_archivo:
+        if cantidad == 0:
+            embeddings_por_archivo[clave] = np.zeros(384)
+            continue
+        bloque = embeddings_funciones[cursor: cursor + cantidad]
+        embeddings_por_archivo[clave] = bloque.mean(axis=0)
+        cursor += cantidad
+
+    return embeddings_por_archivo
 
 
-def full_report(results: dict) -> pd.DataFrame:
-    """Table with the raw values of each file plus the predicted risk,
-    sorted from the riskiest to the least risky."""
+def full_report(results: dict, embeddings_por_archivo: dict) -> pd.DataFrame:
+    """Combina features tabulares (normalizados relativo al repo) con embeddings
+    reducidos por PCA (ya ajustado en entrenamiento — aquí solo .transform())."""
     df = pd.DataFrame.from_dict(results, orient="index")
     df.index.name = "file"
+
     df = normalization_relative_to_repo(df, repo_col="repo")
-    # Risk (technical debt probability) per file.
-    X = df[feat_list]
-    df.insert(0, "danger", MODEL.predict_proba(X)[:, 1].round(3))
+
+    X_tabular = df[feat_list].values
+    matriz_embeddings = np.array([embeddings_por_archivo[clave] for clave in df.index])
+    X_embeddings_reducido = PCA_MODEL.transform(matriz_embeddings)  # transform, NUNCA fit_transform
+
+    X_final = np.hstack([X_tabular, X_embeddings_reducido])
+    df.insert(0, "danger", MODEL.predict_proba(X_final)[:, 1].round(3))
 
     return df.sort_values("danger", ascending=False).reset_index()
 
 
 def save_csv_report(report: pd.DataFrame, repo_name: str, destination: Path = REPORTS_DIR) -> Path:
-    """Saves the report as a CSV in the reports folder and returns the path of
-    the generated file. The name carries a timestamp so it does not overwrite
-    previous runs on the same repo."""
     destination.mkdir(parents=True, exist_ok=True)
-
-    # The repo name comes from GitHub, so it is sanitized before using it as a filename.
     clean_name = re.sub(r"[^A-Za-z0-9._-]", "_", repo_name) or "repo"
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     csv_path = destination / f"report_{clean_name}_{timestamp}.csv"
-
     report.to_csv(csv_path, index=False, encoding="utf-8")
     return csv_path
 
 
 def _delete_tree(path: Path):
-    """Deletes a directory tree. On Windows the .git objects are left as
-    read-only, so that flag is removed before retrying the deletion."""
     def _remove_readonly(func, path, _exc_info):
         os.chmod(path, stat.S_IWRITE)
         func(path)
@@ -147,10 +176,6 @@ def _delete_tree(path: Path):
 
 
 def fetch_and_clone_repo(max_attempts: int = 5):
-    """Looks for a random repo on GitHub, clones it into a temporary folder and
-    validates that it has .py files. Retries with another repo if the clone fails
-    or the repo has no usable Python code. Returns
-    (tmp_dir, repo_path, repo_git, repo_name, files) or None."""
     try:
         from repo_search import get_random_repo
     except EnvironmentError as e:
@@ -199,9 +224,7 @@ def main():
                     "Without arguments, it looks for and clones a random GitHub repo."
     )
     parser.add_argument(
-        "repo_path",
-        nargs="?",
-        default=None,
+        "repo_path", nargs="?", default=None,
         help="Path to a local repo (optional). If omitted, a random GitHub repo "
              "is looked up and cloned.",
     )
@@ -227,14 +250,18 @@ def main():
 
         print_summary(repo_path, files)
 
-        results = feature_extraction(repo_path, files, repo_git, repo_name)
+        results, functions_list, index_list = feature_extraction(
+            repo_path, files, repo_git, repo_name
+        )
         print(f"\nFeatures extracted from {len(results)} files.")
 
         if not results:
             print("Could not extract features from any file.")
             return
 
-        report = full_report(results)
+        embeddings_por_archivo = generar_embeddings_reducidos(functions_list, index_list)
+        report = full_report(results, embeddings_por_archivo)
+
         print("\n" + "=" * 60)
         print("  RISK + RAW VALUES (highest to lowest risk)")
         print("=" * 60)
