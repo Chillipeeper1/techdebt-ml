@@ -40,7 +40,7 @@ top of it without having to re-scrape and re-analyze 22 repositories from scratc
 
 **Note:** this dataset does not include the code embeddings used by the current (v3) model, those are generated
 on the fly from each file's source code, not stored as a static export. Training the full v3 pipeline requires
-re-running the embedding generation step (see [`docs/descisions/004-embedding-tradeoff.md`](docs/descisions/004-embedding-tradeoff.md)).
+re-running the embedding generation step (see [`docs/decisions/004-embedding-tradeoff.md`](docs/decisions/004-embedding-tradeoff.md)).
 
 ## Installation
 
@@ -69,16 +69,16 @@ analyzed file, sorted from highest to lowest predicted risk.
 
 ## Known limitations
 
-This project documents its own blind spots as it finds them, see [`docs/descisions/`](docs/descisions/) for the full
+This project documents its own blind spots as it finds them, see [`docs/decisions/`](docs/decisions/) for the full
 history. The short version:
 
-- **[001](docs/descisions/001-data-leakage.md):** an early version of the label leaked into the features. Fixed.
-- **[002](docs/descisions/002-limitations-temporal-cut.md):** features and label are both computed from a file's full
+- **[001](docs/decisions/001-data-leakage.md):** an early version of the label leaked into the features. Fixed.
+- **[002](docs/decisions/002-limitations-temporal-cut.md):** features and label are both computed from a file's full
   git history, without a strict "past predicts future" time split. Known limitation, not yet addressed.
-- **[003](docs/descisions/003-model-bias-git-activity.md):** the model initially over-relied on raw git activity
+- **[003](docs/decisions/003-model-bias-git-activity.md):** the model initially over-relied on raw git activity
   (commits, authors) rather than actual code complexity, especially on repos more active than the training set.
   Largely mitigated by normalizing activity features relative to each repo.
-- **[004](docs/descisions/004-embedding-tradeoff.md):** adding code embeddings improved the model's sensitivity to
+- **[004](docs/decisions/004-embedding-tradeoff.md):** adding code embeddings improved the model's sensitivity to
   actual code complexity (a ~2x gain in correlation with cyclomatic complexity), at the cost of a small drop in
   local test-set recall (0.76 -> 0.75) and a new, partial coupling with raw file size that wasn't fully resolved.
 

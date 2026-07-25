@@ -51,12 +51,12 @@ Three columns were additionally clipped at the 99th percentile to control extrem
 This dataset inherits every limitation already documented in the source project:
 
 - **Label leakage (resolved):** an early version leaked the label into the features via
-  `bug_fix_commits`/`refactor_commits`. [Details](https://github.com/Chillipeeper1/techdebt-ml/blob/main/docs/descisions/001-data-leakage.md)
+  `bug_fix_commits`/`refactor_commits`. [Details](https://github.com/Chillipeeper1/techdebt-ml/blob/main/docs/decisions/001-data-leakage.md)
 - **No temporal split:** features and label are both computed from a file's entire git
-  history, without a strict past-predicts-future split. [Details](https://github.com/Chillipeeper1/techdebt-ml/blob/main/docs/descisions/002-limitations-temporal-cut.md)
+  history, without a strict past-predicts-future split. [Details](https://github.com/Chillipeeper1/techdebt-ml/blob/main/docs/decisions/002-limitations-temporal-cut.md)
 - **Git-activity bias (partially mitigated):** earlier model versions over-relied on commit
   and author counts rather than actual code complexity. Relative normalization improved
-  this substantially but did not fully resolve it. [Details](https://github.com/Chillipeeper1/techdebt-ml/blob/main/docs/descisions/003-model-bias-git-activity.md)
+  this substantially but did not fully resolve it. [Details](https://github.com/Chillipeeper1/techdebt-ml/blob/main/docs/decisions/003-model-bias-git-activity.md)
 - **Small-sample repos:** three of the 22 source repos have very few files (`flow`: 2,
   `Discord-OTP-Forcer`: 11, `ibet-Network`: 12). Per-repo medians used for git-activity
   normalization are less reliable for these repos. They were kept rather than excluded,
