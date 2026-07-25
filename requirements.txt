@@ -5,7 +5,11 @@ python-dotenv
 gitpython
 radon
 scikit-learn
+joblib
+sentence-transformers
+huggingface-hub
 matplotlib
 pygwalker
 jupyter
 ipykernel
+pytest

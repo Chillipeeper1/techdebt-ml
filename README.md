@@ -50,6 +50,9 @@ cd techdebt-ml
 pip install -r requirements.txt
 ```
 
+**Heads up:** the v3 model runs on `sentence-transformers`, which pulls in `torch` and `transformers` — expect
+a few GB of downloads and a slow first install. It's not optional: `predict.py` won't run without it.
+
 ## Usage
 
 **Analyze a local repo:**
