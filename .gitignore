@@ -21,3 +21,5 @@ venv/
 .idea/
 
 models/*_v1.pkl
+# pre-computed demo reports are committed (see space/build_examples.py)
+!space/examples/*.csv

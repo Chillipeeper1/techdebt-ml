@@ -11,6 +11,13 @@ project is just a tool to help you detect technical debt in your codebase, but i
 
 **Currently supports Python codebases only.** Files in other languages are ignored.
 
+## Try it online
+
+[![Open in Hugging Face Spaces](https://huggingface.co/datasets/huggingface/badges/resolve/main/open-in-hf-spaces-md.svg)](https://huggingface.co/spaces/ChilliPeep/techdebt-ml)
+
+Paste any public GitHub repo with Python code and get the per-file risk report in your browser, no install needed.
+The demo's code lives in [`space/`](space/) (deploy it with `./space/deploy.sh`).
+
 ## How it works
 
 TechDebt ML analyzes your codebase file by file and combines two kinds of signal:
