@@ -1,0 +1,10 @@
+# ZeroGPU supports torch 2.8 - 2.13 (the `spaces` package is preinstalled there)
+torch==2.13.0
+# Must match the version the v3 .pkl artifacts were trained with
+scikit-learn==1.9.0
+sentence-transformers
+pandas
+numpy
+gitpython
+radon
+joblib
